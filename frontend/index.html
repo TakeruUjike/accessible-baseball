@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ユニバーサル・ベースボール - スクリーンリーダー対応野球ゲーム</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- スキップリンク（スクリーンリーダー用） -->
+    <a href="#game-controls" class="skip-link">ゲーム操作エリアへジャンプ</a>
+
+    <header>
+        <h1>ユニバーサル・ベースボール (Universal Baseball)</h1>
+        <p>視覚障がい者もスクリーンリーダーとサウンドで一緒に楽しめる、本格アクション野球ゲーム</p>
+    </header>
+
+    <main class="container">
+        <!-- 説明書セクション -->
+        <section class="instructions-section" aria-labelledby="instructions-title">
+            <h2 id="instructions-title">ゲーム説明と操作方法</h2>
+            <div class="instructions-content">
+                <p>このゲームはスクリーンリーダー（音声読み上げソフト）と効果音だけで遊べる設計になっています。以下のキーボード操作を使用します：</p>
+                <ul>
+                    <li><strong>[スペースキー (Space)]</strong>: バッターボックスでの<strong>スイング</strong>（打撃）</li>
+                    <li><strong>[1], [2], [3] キー</strong>: 投球時の球種選択 (1: ストレート, 2: カーブ, 3: チェンジアップ)</li>
+                    <li><strong>[矢印キー (←/→)]</strong>: 投球時のコース選択</li>
+                    <li><strong>[矢印キー (↑/↓)]</strong>: 投球時の<strong>球速の調整</strong>（おそい・ふつう・はやい）</li>
+                    <li><strong>[S] キー</strong>: 試合状況（イニング、得点、カウント、ランナー）の<strong>ステータス音声読み上げ</strong></li>
+                    <li><strong>[Enter] キー</strong>: 次の投球の準備、または決定操作</li>
+                </ul>
+                <h3>打撃（バッティング）のコツ：</h3>
+                <p>ピッチャーが投げると、ボールの接近を表す<strong>周波数の変化するスイープ音（ヒューという音）</strong>が流れます。音が<strong>最も高くなった瞬間（ミットに収まる直前）</strong>にタイミングよく [スペースキー] を押すとヒットになります。球種（ストレートは速く、チェンジアップは遅い）によってタイミングが異なります。ボール球は変な音がしたり左右に偏って聞こえるので、振らずに見送る（ボールにする）のがコツです。</p>
+            </div>
+        </section>
+
+        <!-- 設定・ロビー画面 -->
+        <section id="lobby-screen" class="card lobby-card" aria-labelledby="lobby-title">
+            <h2 id="lobby-title">ゲーム設定</h2>
+            <div class="form-group">
+                <label for="ai-difficulty">対戦相手のレベル (CPU難易度):</label>
+                <select id="ai-difficulty" class="select-input">
+                    <option value="easy">かんたん (ビギナー)</option>
+                    <option value="medium" selected>ふつう (アマチュア)</option>
+                    <option value="hard">むずかしい (プロ)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="game-innings">イニング数:</label>
+                <select id="game-innings" class="select-input">
+                    <option value="1">1回制 (サクッと勝負)</option>
+                    <option value="3" selected>3回制 (おすすめ)</option>
+                    <option value="9">9回制 (本格試合)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="game-mode">ゲームモード:</label>
+                <select id="game-mode" class="select-input">
+                    <option value="normal" selected>通常対戦 (フリープレイ)</option>
+                    <option value="tournament">勝ち抜きトーナメント (3連勝で優勝！)</option>
+                    <option value="timing_practice">チャレンジ：タイミング測定器 (10球の精度測定)</option>
+                    <option value="survival_practice">チャレンジ：サバイバル見極め (見極め連続正解)</option>
+                </select>
+            </div>
+            <button id="start-game-btn" class="btn btn-primary btn-large">
+                音声を有効にして試合開始
+            </button>
+            <div id="stats-container" class="stats-card" style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); text-align: left;" aria-label="通算戦績">
+                <h3 style="margin-top: 0; color: #4fc3f7; font-size: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">🏆 通算戦績</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 14px;">
+                    <div>試合数: <span id="stats-games">0</span></div>
+                    <div>勝敗: <span id="stats-record">0勝 0敗 0分</span></div>
+                    <div>打率: <span id="stats-avg">.000</span></div>
+                    <div>本塁打: <span id="stats-hr">0</span></div>
+                    <div style="grid-column: span 2;">トーナメント優勝: <span id="stats-tournament">0</span> 回</div>
+                    <div style="grid-column: span 2; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; padding-top: 5px; font-size: 13px;">
+                        <div>タイミング最小誤差: <span id="stats-best-error">なし</span></div>
+                        <div>サバイバル最大記録: <span id="stats-best-survival">0</span> 球連続</div>
+                    </div>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #aaa; text-align: right;">
+                    <button id="reset-stats-btn" style="background: none; border: none; color: #ff5252; cursor: pointer; text-decoration: underline; padding: 0;">戦績リセット</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- メインゲーム画面 (最初は非表示) -->
+        <section id="game-screen" class="game-layout hidden" aria-label="ゲーム実況画面">
+            
+            <!-- 電光掲示板 (スコアボード) -->
+            <div class="scoreboard-container" aria-label="スコアボード">
+                <div class="scoreboard-led">
+                    <!-- イニングと対戦カード -->
+                    <div class="score-row header-row">
+                        <div class="team-name-col">チーム</div>
+                        <div class="inning-col" id="inning-display" aria-live="polite">1回表</div>
+                        <div class="runs-col">R</div>
+                    </div>
+                    <div class="score-row">
+                        <div class="team-name-col">CPU (後攻)</div>
+                        <div class="inning-col" id="cpu-runs-list">-</div>
+                        <div class="runs-col score-val" id="cpu-score">0</div>
+                    </div>
+                    <div class="score-row">
+                        <div class="team-name-col">あなた (先攻)</div>
+                        <div class="inning-col" id="player-runs-list">-</div>
+                        <div class="runs-col score-val" id="player-score">0</div>
+                    </div>
+                </div>
+
+                <!-- カウント表示 (ボール・ストライク・アウト) -->
+                <div class="counts-panel" aria-label="カウント">
+                    <div class="count-item" id="ball-count-container">
+                        <span class="count-label">B</span>
+                        <div class="count-indicators" id="ball-indicators" aria-label="ボール 0">
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                    </div>
+                    <div class="count-item" id="strike-count-container">
+                        <span class="count-label">S</span>
+                        <div class="count-indicators" id="strike-indicators" aria-label="ストライク 0">
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                    </div>
+                    <div class="count-item" id="out-count-container">
+                        <span class="count-label">O</span>
+                        <div class="count-indicators" id="out-indicators" aria-label="アウト 0">
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 野球盤（ベース状況の視覚的表現とスクリーンリーダー用ラベル） -->
+            <div class="field-container" aria-label="グラウンドの状況">
+                <div class="diamond">
+                    <!-- 本塁 -->
+                    <div class="home-plate" aria-hidden="true"></div>
+                    <!-- 一塁 -->
+                    <div class="base-spot first-base" id="base-1" aria-label="一塁：ランナーなし" role="text">
+                        <span class="base-marker">1</span>
+                    </div>
+                    <!-- 二塁 -->
+                    <div class="base-spot second-base" id="base-2" aria-label="二塁：ランナーなし" role="text">
+                        <span class="base-marker">2</span>
+                    </div>
+                    <!-- 三塁 -->
+                    <div class="base-spot third-base" id="base-3" aria-label="三塁：ランナーなし" role="text">
+                        <span class="base-marker">3</span>
+                    </div>
+                    <!-- ピッチャーマウンド -->
+                    <div class="pitchers-mound" aria-hidden="true"></div>
+                </div>
+                
+                <div id="runners-status-text" class="sr-only" aria-live="polite">ランナーなし</div>
+            </div>
+
+            <!-- アクションとコントロールパネル -->
+            <section id="game-controls" class="card controls-card" aria-label="操作パネル" tabindex="-1">
+                <div class="mode-header">
+                    <h3 id="current-mode-title" aria-live="polite">あなたの攻撃 (バッティング)</h3>
+                    <p id="pitcher-info" aria-live="polite">投手：CPU (難易度: 普通)</p>
+                </div>
+
+                <!-- 1. バッティングモード用操作 -->
+                <div id="batting-controls" class="control-group">
+                    <!-- 狙い球の宣言 -->
+                    <div class="guess-pitch-selection">
+                        <fieldset>
+                            <legend>狙い球を宣言（キー 1:ストレート, 2:カーブ, 3:チェンジアップ, 0:解除）：</legend>
+                            <div class="radio-buttons">
+                                <label class="radio-label">
+                                    <input type="radio" name="guess-type" value="" checked>
+                                    <span class="custom-radio"></span> 狙いなし (0)
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="guess-type" value="fastball">
+                                    <span class="custom-radio"></span> ストレート (1)
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="guess-type" value="curve">
+                                    <span class="custom-radio"></span> カーブ (2)
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="guess-type" value="changeup">
+                                    <span class="custom-radio"></span> チェンジアップ (3)
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="guess-type" value="fork">
+                                    <span class="custom-radio"></span> フォーク (4)
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="guess-type" value="split">
+                                    <span class="custom-radio"></span> スプリット (5)
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="guess-type" value="screw">
+                                    <span class="custom-radio"></span> スクリュー (6)
+                                </label>
+                            </div>
+                        </fieldset>
+                    </div>
+
+                    <button id="batting-ready-btn" class="btn btn-primary btn-large">
+                        投球を要求する (Enter)
+                    </button>
+                    <button id="swing-btn" class="btn btn-danger btn-large" disabled>
+                        スイングする (スペースキー)
+                    </button>
+                    <!-- スイング用インジケータ（弱視・健常者向けのビジュアル支援） -->
+                    <div class="timing-meter-container" aria-hidden="true">
+                        <div class="timing-meter-label">投球タイミングインジケータ:</div>
+                        <div class="timing-bar-bg">
+                            <div id="timing-cursor" class="timing-cursor"></div>
+                            <div class="timing-target-zone"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. ピッチングモード用操作 -->
+                <div id="pitching-controls" class="control-group hidden">
+                    <div class="pitch-selection">
+                        <fieldset>
+                            <legend>球種を選択してください：</legend>
+                            <div class="radio-buttons">
+                                <label class="radio-label">
+                                    <input type="radio" name="pitch-type" value="fastball" checked>
+                                    <span class="custom-radio"></span> 1: ストレート (速球)
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="pitch-type" value="curve">
+                                    <span class="custom-radio"></span> 2: カーブ (変化球)
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="pitch-type" value="changeup">
+                                    <span class="custom-radio"></span> 3: チェンジアップ (遅球)
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="pitch-type" value="fork">
+                                    <span class="custom-radio"></span> 4: フォーク (縦変化)
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="pitch-type" value="split">
+                                    <span class="custom-radio"></span> 5: スプリット (高速縦)
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="pitch-type" value="screw">
+                                    <span class="custom-radio"></span> 6: スクリュー (逆変化)
+                                </label>
+                            </div>
+                        </fieldset>
+                    </div>
+
+                    <div class="pitch-location">
+                        <fieldset>
+                            <legend>投球コースを選択してください：</legend>
+                            <div class="location-grid">
+                                <label class="grid-cell">
+                                    <input type="radio" name="pitch-loc" value="high-in">
+                                    <span>高め内角</span>
+                                </label>
+                                <label class="grid-cell">
+                                    <input type="radio" name="pitch-loc" value="high-out">
+                                    <span>高め外角</span>
+                                </label>
+                                <label class="grid-cell">
+                                    <input type="radio" name="pitch-loc" value="strike-center" checked>
+                                    <span class="strike-center-label">真ん中ストライク</span>
+                                </label>
+                                <label class="grid-cell">
+                                    <input type="radio" name="pitch-loc" value="low-in">
+                                    <span>低め内角</span>
+                                </label>
+                                <label class="grid-cell">
+                                    <input type="radio" name="pitch-loc" value="low-out">
+                                    <span>低め外角</span>
+                                </label>
+                            </div>
+                        </fieldset>
+                    </div>
+
+                    <div class="pitch-speed-selection">
+                        <fieldset>
+                            <legend>投球スピード（矢印キー [↑ / ↓] でも調整可能）：</legend>
+                            <div class="radio-buttons">
+                                <label class="radio-label">
+                                    <input type="radio" name="pitch-speed" value="slow">
+                                    <span class="custom-radio"></span> おそい
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="pitch-speed" value="normal" checked>
+                                    <span class="custom-radio"></span> ふつう
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="pitch-speed" value="fast">
+                                    <span class="custom-radio"></span> はやい
+                                </label>
+                            </div>
+                        </fieldset>
+                    </div>
+
+                    <button id="pitch-throw-btn" class="btn btn-primary btn-large">
+                        投球する (Enter)
+                    </button>
+                </div>
+
+                <!-- 音量調整・練習モードなどのユーティリティ -->
+                <div class="utility-controls">
+                    <button id="btn-practice-pitch" class="btn btn-secondary">球種タイミング練習</button>
+                    <div class="volume-slider-container">
+                        <label for="sound-volume">効果音量:</label>
+                        <input type="range" id="sound-volume" min="0" max="100" value="80">
+                    </div>
+                </div>
+            </section>
+
+            <!-- 試合経過・実況ログ -->
+            <section class="card log-card" aria-labelledby="log-title">
+                <h2 id="log-title">実況テキスト (プレイ履歴)</h2>
+                <div id="game-log" class="game-log-box" role="log" aria-live="polite" aria-relevant="additions">
+                    <p class="log-entry system-msg">プレイボール！あなたの攻撃、1回表を開始します。</p>
+                </div>
+            </section>
+        </section>
+
+        <!-- イニング終了・ゲームセットダイアログ -->
+        <section id="modal-container" class="modal-backdrop hidden" aria-modal="true" role="dialog" aria-labelledby="modal-title">
+            <div class="modal-content card">
+                <h2 id="modal-title">回終了</h2>
+                <div id="modal-body">
+                    <p>3アウトチェンジ。攻守交代します。</p>
+                </div>
+                <button id="modal-close-btn" class="btn btn-primary">進む (Enter)</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- スクリーンリーダーへの即時通知用・不可視エリア (重要！) -->
+    <div id="sr-announcer" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+
+    <footer>
+        <p>© 2026 ユニバーサル・ゲームズ. All rights reserved. Web Audio API / Go / HTML5</p>
+    </footer>
+
+    <!-- ゲームスクリプト -->
+    <script src="app.js"></script>
+</body>
+</html>
